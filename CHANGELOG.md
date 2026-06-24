@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.11] - 2026-06-24
+
+### Added
+
+- An expanded real-world MT942 test corpus under `tests/fixtures/`, with
+  three additional realistic samples that differ in genuine wire-format
+  detail: `:61:` lines with and without the optional 4-digit entry
+  (booking) date; one versus two `:34F:` floor-limit lines (debit and
+  credit floor); `:13D:` present versus absent; several `:61:`/`:86:`
+  transactions of mixed credit/debit; and trailing `-` end-of-message
+  markers with stray blank lines.
+- Golden-style tests (`tests/test_corpus.py`) that pin the **exact**
+  parsed `Transaction` list (amount sign and `Decimal` value, value and
+  booking dates, description, `account_id`, currency, transaction id and
+  reference) and the full nine-field `Mt942Summary` (`reference`,
+  `account_id`, `currency`, `statement_datetime`, `debit_count`,
+  `debit_sum`, `credit_count`, `credit_sum`, `transaction_count`) for
+  every fixture, so a parsing regression can never pass silently.
+- An install **smoke test** job (`smoke`) in CI: it builds the wheel,
+  installs it into a fresh virtual environment (pulling
+  `bankstatementparser` from PyPI), imports the package and prints
+  `__version__`, then runs `examples/01_load_mt942.py` from a neutral
+  working directory — proving the published artifact installs and works
+  outside the source tree. The flow is reproducible locally.
+
+### Changed
+
+- Pruned over-scaffolded CI: removed the `nightly.yml` and `docs.yml`
+  workflows. The retained workflows are `ci.yml`, `pr.yml`, `codeql.yml`,
+  `security.yml`, and `release.yml`. (This is a library, so there is no
+  `docker.yml`.) The public API is unchanged.
+
 ## [0.0.10] - 2026-06-24
 
 ### Added
@@ -48,10 +80,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     match the code.
 - Quality gates pinned at 100% from the initial release:
   - `pytest --cov=bankstatementparser_loader_mt942 --cov-branch
-    --cov-fail-under=100` (65 tests, full line + branch coverage).
+    --cov-fail-under=100` (full line + branch coverage).
   - `interrogate --fail-under=100` for module and function docstring
     coverage.
   - `ruff` and `mypy --strict` clean.
 - Python 3.10+ support; depends on `bankstatementparser` (>= 0.0.9).
 
+[0.0.11]: https://github.com/sebastienrousseau/bankstatementparser-loader-mt942/releases/tag/v0.0.11
 [0.0.10]: https://github.com/sebastienrousseau/bankstatementparser-loader-mt942/releases/tag/v0.0.10
