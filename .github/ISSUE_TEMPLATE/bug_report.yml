@@ -1,0 +1,69 @@
+name: Bug Report
+description: Report a reproducible problem in bankstatementparser-loader-mt942
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: bankstatementparser-loader-mt942 Version
+      placeholder: "0.0.1"
+    validations:
+      required: true
+  - type: input
+    id: bankstatementparser_version
+    attributes:
+      label: bankstatementparser Version
+      placeholder: "0.0.9"
+    validations:
+      required: true
+  - type: dropdown
+    id: python_version
+    attributes:
+      label: Python Version
+      options:
+        - "3.10"
+        - "3.11"
+        - "3.12"
+        - "3.13"
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      options:
+        - Linux
+        - macOS
+        - Windows
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: sample
+    attributes:
+      label: MT942 Payload
+      description: |
+        The minimal, anonymised MT942 the loader mishandled (redact any
+        sensitive IBAN/BIC values - placeholder data is fine).
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: error_output
+    attributes:
+      label: Error Output
+      description: The full traceback or the unexpected result.
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything Else
+      description: Logs, environment details, etc.

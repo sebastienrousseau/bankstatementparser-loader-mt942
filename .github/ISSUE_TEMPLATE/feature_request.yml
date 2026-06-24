@@ -1,0 +1,42 @@
+name: Feature Request
+description: Suggest a new tag, mapping, or capability for bankstatementparser-loader-mt942
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: |
+        What can't you do today with bankstatementparser-loader-mt942?
+        If this involves a specific MT942 tag, name it.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: |
+        Sketch the new behaviour. Which tag(s)? How should it map onto a
+        bankstatementparser Transaction or the Mt942Summary?
+    validations:
+      required: true
+  - type: textarea
+    id: sample
+    attributes:
+      label: Sample MT942
+      description: |
+        A minimal, anonymised MT942 payload that demonstrates the need
+        (placeholder IBAN/BIC values are fine).
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+  - type: textarea
+    id: contribution
+    attributes:
+      label: Willingness To Contribute
+      description: Could you take a stab at the implementation or tests?
