@@ -23,6 +23,10 @@ Makefile text eol=lf
 .gitattributes text eol=lf
 .gitignore text eol=lf
 
+# Vendored real-world fixtures: preserve byte-for-byte (CRLF intact, no
+# normalization) — see tests/fixtures/real/PROVENANCE.md.
+tests/fixtures/real/*.mt942 -text
+
 # Binary files
 *.png binary
 *.jpg binary

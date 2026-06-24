@@ -28,6 +28,14 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
+# The docs live at the real repo root, not in mutmut's ``mutants/``
+# sandbox copy; skip cleanly there (executing README blocks is a doc-sync
+# check, out of scope for mutation testing of loader logic).
+pytestmark = pytest.mark.skipif(
+    not (REPO_ROOT / "README.md").exists(),
+    reason="docs absent (mutmut sandbox): README block exec not applicable",
+)
+
 #: Markdown files whose python blocks are executed by this suite. Only
 #: README.md ships embedded python; ``docs/*.md`` are include shims.
 DOC_FILES: tuple[str, ...] = ("README.md",)
@@ -72,7 +80,14 @@ def _extract_blocks() -> list[DocBlock]:
     """
     blocks: list[DocBlock] = []
     for rel in DOC_FILES:
-        text = (REPO_ROOT / rel).read_text(encoding="utf-8")
+        path = REPO_ROOT / rel
+        if not path.exists():
+            # The docs live at the real repo root, not in mutmut's
+            # ``mutants/`` sandbox copy; skip cleanly when absent so this
+            # module still imports there (it asserts doc sync, not loader
+            # logic, and is out of scope for mutation testing).
+            continue
+        text = path.read_text(encoding="utf-8")
         for match in re.finditer(
             r"^```(\w*)\n(.*?)^```", text, re.DOTALL | re.MULTILINE
         ):

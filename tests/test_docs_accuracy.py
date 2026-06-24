@@ -18,6 +18,8 @@ import sys
 from decimal import Decimal
 from pathlib import Path
 
+import pytest
+
 import bankstatementparser_loader_mt942 as pkg
 from bankstatementparser_loader_mt942 import summarize_mt942
 
@@ -33,6 +35,16 @@ PYPROJECT = REPO_ROOT / "pyproject.toml"
 
 SRC_DIR = REPO_ROOT / "bankstatementparser_loader_mt942"
 EXAMPLES_DIR = REPO_ROOT / "examples"
+
+# These tests assert that the repo-root docs (README/CHANGELOG/examples)
+# stay in sync with the code. Under mutmut the suite runs from a
+# ``mutants/`` sandbox copy that contains only the package and tests, not
+# the docs; skip there cleanly (doc sync is out of scope for mutation
+# testing of loader logic).
+pytestmark = pytest.mark.skipif(
+    not (REPO_ROOT / "README.md").exists(),
+    reason="docs absent (mutmut sandbox): doc-sync checks not applicable",
+)
 
 #: Every public symbol the package promises via ``__all__``.
 PUBLIC_SYMBOLS = (

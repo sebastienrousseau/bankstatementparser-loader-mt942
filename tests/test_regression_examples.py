@@ -17,8 +17,18 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 EXAMPLES_DIR = REPO_ROOT / "examples"
+
+# The example scripts live at the real repo root, not in mutmut's
+# ``mutants/`` sandbox copy; skip there cleanly (out of scope for
+# mutation testing of loader logic).
+pytestmark = pytest.mark.skipif(
+    not EXAMPLES_DIR.exists(),
+    reason="examples absent (mutmut sandbox): example checks not applicable",
+)
 
 
 def _run(*command: str, timeout: int = 120) -> str:

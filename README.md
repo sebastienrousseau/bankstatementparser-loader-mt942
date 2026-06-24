@@ -121,6 +121,32 @@ this follows Postel's law: be liberal in what you accept. A malformed
 `:61:` statement line is **skipped** rather than fatal, so one bad row
 never aborts the whole parse.
 
+### Real-world wire-format constructs
+
+Genuine bank/SWIFT exports are messier than the tidy sample above. The
+loader handles the following (pinned by a golden test over a real,
+third-party fixture in `tests/fixtures/real/`):
+
+- **SWIFT message envelope.** Messages wrapped in the header blocks
+  `{1:...}{2:...}{3:...}` and the text block `{4:` … `-}` are unwrapped
+  before parsing; the envelope is never mistaken for content.
+- **Amounts with no fractional digits.** A SWIFT amount may end on the
+  decimal comma with nothing after it: `5000,` → `Decimal("5000")`,
+  `0,` → `Decimal("0")`.
+- **`:34F:` with an embedded D/C indicator.** `:34F:NZDC0,` yields
+  currency `NZD` regardless of the `C`/`D` letter.
+- **Multi-line `:86:`.** Continuation lines that do not start with a
+  `:tag:` head (e.g. `/BAI/…`, `/BENM/…`, `/ACNO/…`) are appended to the
+  `:86:` description, newlines preserved.
+- **Supplementary details after `:61:`.** A line immediately following a
+  `:61:` (before any `:86:`), such as a bare `Transfer` or
+  `wording/NBKT`, is the SWIFT supplementary-details subfield. It is
+  **folded into the transaction's `description`** (supplementary text
+  first, then the `:86:` content, joined by newlines) and never glued
+  onto the statement-line tail — so the parsed `transaction_id` /
+  `reference` stay clean. A `:61:` with supplementary details but no
+  following `:86:` keeps that text as its description.
+
 ## Field Mapping
 
 Each `:61:` statement line becomes one `Transaction`:

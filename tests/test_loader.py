@@ -395,3 +395,166 @@ def test_load_mt942_file_accepts_str_path(tmp_path) -> None:
     path.write_text(_full_mt942(), encoding="utf-8")
     txns = load_mt942_file(str(path))
     assert len(txns) == 2
+
+
+# ─── Real-world constructs (v0.0.12) ─────────────────────────────────────────
+
+
+def test_swift_envelope_with_block4_is_stripped() -> None:
+    """A full SWIFT envelope (``{1:}{2:}{4:`` ... ``-}``) is stripped.
+
+    The header blocks and the block-4 opener/terminator must not be
+    parsed as content; only the ``:tag:`` body survives.
+    """
+    mt942 = (
+        "{1:F01BANKXXXX0000000000}{2:I942BANKXXXXN}{4:\r\n"
+        ":20:REF\r\n"
+        ":25:ACC\r\n"
+        ":34F:EURC0,00\r\n"
+        ":61:250624C10,00NTRFGOOD\r\n"
+        "-}"
+    )
+    txns = load_mt942(mt942)
+    assert len(txns) == 1
+    assert txns[0].transaction_id == "NTRFGOOD"
+
+
+def test_standalone_header_block_without_block4_is_stripped() -> None:
+    """A header block with no ``{4:`` opener is still stripped.
+
+    Exercises the no-text-block-opener branch of envelope stripping: a
+    ``{3:{...}}`` user-header block prefixing the body must be removed so
+    the following ``:20:`` is recognised at line start.
+    """
+    mt942 = (
+        "{3:{108:MYREF}}:20:REF\n"
+        ":25:ACC\n"
+        ":34F:EURC0,00\n"
+        ":61:250624C10,00NTRFGOOD\n"
+    )
+    txns = load_mt942(mt942)
+    assert len(txns) == 1
+    assert txns[0].transaction_id == "NTRFGOOD"
+
+
+def test_amount_with_trailing_comma_no_decimals() -> None:
+    """A SWIFT amount ending on the decimal comma parses with no digits.
+
+    ``5000,`` must become ``Decimal("5000")`` (not raise, not ``5000.0``
+    with spurious precision).
+    """
+    debit = load_mt942(
+        ":20:REF\n:25:ACC\n:34F:NZDC0,\n:61:200521D5000,NTRFNONREF\n"
+    )[0]
+    assert debit.amount == Decimal("-5000")
+    assert debit.amount == Decimal("-5000.00")
+
+
+def test_floor_limit_with_embedded_dc_indicator_parses_currency() -> None:
+    """``:34F:NZDC0,`` yields currency NZD regardless of the C indicator."""
+    txn = load_mt942(":20:REF\n:25:ACC\n:34F:NZDC0,\n:61:250624C10,00NTRFX\n")[
+        0
+    ]
+    assert txn.currency == "NZD"
+
+
+def test_lone_dash_floor_limit_does_not_crash() -> None:
+    """A lone-dash ``:34F:-`` value is treated as empty, not ``None``.
+
+    The tokeniser must emit an empty string (not ``None``) for a bare
+    ``-`` field so the floor-limit regex receives a string; a ``None``
+    would raise ``TypeError`` in ``re.match``.
+    """
+    txns = load_mt942(":20:REF\n:25:ACC\n:34F:-\n:61:250624C10,00NTRFX\n")
+    assert txns[0].currency is None
+
+
+def test_supplementary_line_after_61_without_86_becomes_description() -> None:
+    """A ``:61:`` supplementary line with no ``:86:`` is kept as description.
+
+    The supplementary-details subfield is folded into the transaction;
+    it must never be dropped, and must never corrupt the reference.
+    """
+    txn = load_mt942(
+        ":20:REF\n"
+        ":25:ACC\n"
+        ":34F:EURC0,00\n"
+        ":61:250624C10,00NTRFGOOD\n"
+        "SupplementaryWording\n"
+    )[0]
+    assert txn.transaction_id == "NTRFGOOD"
+    assert txn.description == "SupplementaryWording"
+
+
+def test_supplementary_line_and_86_are_folded_in_order() -> None:
+    """Supplementary text and ``:86:`` join newline-separated, supp first."""
+    txn = load_mt942(
+        ":20:REF\n"
+        ":25:ACC\n"
+        ":34F:EURC0,00\n"
+        ":61:250624C10,00NTRFGOOD\n"
+        "Transfer\n"
+        ":86:/BAI/469/INFO\n"
+    )[0]
+    assert txn.description == "Transfer\n/BAI/469/INFO"
+
+
+def test_multi_line_86_continuation_is_appended() -> None:
+    """``:86:`` continuation lines (no ``:tag:`` head) join the description."""
+    txn = load_mt942(
+        ":20:REF\n"
+        ":25:ACC\n"
+        ":34F:EURC0,00\n"
+        ":61:250624C10,00NTRFGOOD\n"
+        ":86:/BAI/469/INFO\n"
+        "/BENM/Transfer\n"
+        "/ACNO/12-34\n"
+    )[0]
+    assert txn.description == "/BAI/469/INFO\n/BENM/Transfer\n/ACNO/12-34"
+
+
+def test_year_eighty_maps_to_nineteen_eighties() -> None:
+    """The SWIFT sliding window: ``YY == 80`` maps to 1980, not 2080."""
+    txn = load_mt942(
+        ":20:REF\n:25:ACC\n:34F:EURC0,00\n:61:800624C10,00NTRFX\n"
+    )[0]
+    assert txn.value_date == date(1980, 6, 24)
+
+
+def test_year_seventy_nine_maps_to_twenty_seventies() -> None:
+    """The SWIFT sliding window: ``YY == 79`` maps to 2079."""
+    txn = load_mt942(
+        ":20:REF\n:25:ACC\n:34F:EURC0,00\n:61:790624C10,00NTRFX\n"
+    )[0]
+    assert txn.value_date == date(2079, 6, 24)
+
+
+def test_missing_tag_20_error_message_is_exact() -> None:
+    """The ``:20:`` error message text is pinned exactly."""
+    with pytest.raises(
+        ValueError, match=r"^MT942 payload missing required :20: reference$"
+    ):
+        load_mt942(":25:ACC\n:34F:EURC0,00\n")
+
+
+def test_missing_tag_25_error_message_is_exact() -> None:
+    """The ``:25:`` error message text is pinned exactly."""
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"^MT942 payload missing required :25: account identification$"
+        ),
+    ):
+        load_mt942(":20:REF\n:34F:EURC0,00\n")
+
+
+def test_malformed_debit_summary_error_names_tag_exactly() -> None:
+    """The ``:90D:`` error message uses the exact tag, not a mutated one."""
+    with pytest.raises(ValueError, match=r"^Malformed :90D: summary field"):
+        summarize_mt942(":20:REF\n:25:ACC\n:90D:JUNK\n")
+
+
+def test_malformed_credit_summary_error_names_tag_exactly() -> None:
+    """The ``:90C:`` error message uses the exact tag, not a mutated one."""
+    with pytest.raises(ValueError, match=r"^Malformed :90C: summary field"):
+        summarize_mt942(":20:REF\n:25:ACC\n:90C:JUNK\n")

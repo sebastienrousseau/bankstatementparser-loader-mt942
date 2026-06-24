@@ -24,6 +24,11 @@ htmlcov/
 coverage.xml
 .coverage
 
+# Mutation testing (mutmut sandbox copy + stats)
+mutants/
+.mutmut-cache
+mutmut-stats.json
+
 # OS
 .DS_Store
 Thumbs.db
