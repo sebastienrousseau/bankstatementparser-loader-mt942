@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bankstatementparser-loader-mt942"
-version = "0.0.11"
+version = "0.0.12"
 description = "SWIFT MT942 Interim Transaction Report loader for the bankstatementparser library — parses MT942 into bankstatementparser Transaction objects."
 authors = ["Sebastien Rousseau <sebastian.rousseau@gmail.com>"]
 license = "Apache-2.0"
@@ -23,10 +23,25 @@ ruff = "^0.1.0"
 mypy = "^1.11.0"
 bandit = "^1.7.0"
 interrogate = "^1.7.0"
+mutmut = "^3.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.mutmut]
+# Mutation testing: prove the test suite actually *kills* injected bugs,
+# not merely that every line executes (100% line coverage is weak
+# evidence). We mutate only the loader package and run the test suite as
+# the test command.
+paths_to_mutate = ["bankstatementparser_loader_mt942/"]
+tests_dir = ["tests/"]
+# Run only the behavioural loader tests under mutation. The docs/version
+# regression suites (test_docs_accuracy, test_regression_*) resolve paths
+# relative to the real repo root and cannot run from mutmut's ``mutants/``
+# sandbox copy; they assert documentation sync, not loader logic, so they
+# are out of scope for mutation testing.
+runner = "python -m pytest -x -q --no-header -p no:cacheprovider tests/test_loader.py tests/test_corpus.py tests/test_real_corpus.py"
 
 [tool.black]
 line-length = 79
@@ -59,7 +74,7 @@ ignore-init-method = true
 ignore-semiprivate = false
 ignore-private = false
 ignore-magic = true
-exclude = ["tests", "examples"]
+exclude = ["tests", "examples", "mutants"]
 
 [tool.ruff]
 line-length = 79

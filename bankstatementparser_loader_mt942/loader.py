@@ -47,9 +47,33 @@ Supported tags:
 
 Amounts use the SWIFT comma decimal separator (``500,00``); they are
 converted to :class:`decimal.Decimal` (``Decimal("500.00")``)
-throughout. Debit lines yield a negative amount, credit lines a
-positive amount. Unknown tags and the trailing ``-`` end-of-message
-marker are tolerated and ignored.
+throughout. The fractional part is optional: a SWIFT amount may end on
+the decimal comma with no digits after it (``5000,`` → ``Decimal("5000")``,
+``0,`` → ``Decimal("0")``). Debit lines yield a negative amount, credit
+lines a positive amount. Unknown tags and the trailing ``-``
+end-of-message marker are tolerated and ignored.
+
+Real-world MT942 messages are frequently wrapped in a **SWIFT message
+envelope** — the basic/application/user header blocks ``{1:...}``,
+``{2:...}``, ``{3:...}`` and the text-block opener ``{4:`` with a
+matching ``-}`` terminator. This loader strips that envelope before
+tokenising so the ``:tag:`` body parses cleanly; envelope lines are
+never mistaken for content.
+
+Two ``:61:`` constructs that appear in genuine bank exports are handled:
+
+* **Supplementary details after ``:61:``** — a SWIFT statement line may
+  carry an optional supplementary-details subfield on the line(s)
+  immediately following the ``:61:`` line (before any ``:86:``), e.g. a
+  bare ``Transfer`` or ``wording/NBKT``. This loader captures those
+  line(s) and folds them into the transaction's ``description`` (they
+  are never silently dropped): the description is the supplementary
+  text and the following ``:86:`` content joined by newlines, in that
+  order.
+* **Multi-line ``:86:``** — the ``:86:`` information field continues on
+  following lines that do not start with a ``:tag:`` head (e.g.
+  ``/BAI/...``, ``/BENM/...``, ``/ACNO/...``). Those continuation lines
+  are appended to the ``:86:`` description verbatim, newlines preserved.
 """
 
 from __future__ import annotations
@@ -80,6 +104,16 @@ SOURCE = "mt942"
 # A field starts with ``:tag:`` at the beginning of a line. Tags are
 # 2-3 chars, optionally followed by a single letter (e.g. 28C, 34F).
 _FIELD_HEAD_RE = re.compile(r"^:(\d{2}[A-Z]?):", re.MULTILINE)
+
+# A SWIFT envelope header block: ``{1:...}``, ``{2:...}``, ``{3:{...}...}``
+# or the text-block opener ``{4:``. The opener has no closing brace on the
+# same token (block 4 is terminated later by ``-}``), so it is matched
+# separately. Used to strip the envelope before tokenising the body.
+_ENVELOPE_BLOCK_RE = re.compile(r"\{[123]:[^{}]*(?:\{[^{}]*\}[^{}]*)*\}")
+_BLOCK4_OPEN_RE = re.compile(r"\{4:")
+# The block-4 terminator ``-}`` (optionally preceded by whitespace) at the
+# very end of the message, e.g. ``...5020,\r\n-}``.
+_BLOCK4_CLOSE_RE = re.compile(r"\s*-\}\s*$")
 
 # :34F:EURD500,00  /  :34F:EUR500,00
 #       ^CCY ^DC(opt) ^Amount (comma-decimal)
@@ -150,6 +184,47 @@ class Mt942Summary:
     credit_count: int | None
     credit_sum: Decimal | None
     transaction_count: int
+
+
+# ─── Envelope handling ───────────────────────────────────────────────────────
+
+
+def _strip_envelope(text: str) -> str:
+    """Remove a SWIFT message envelope, returning the bare ``:tag:`` body.
+
+    Real-world MT942 messages are commonly wrapped in the SWIFT envelope:
+    the header blocks ``{1:...}{2:...}{3:...}`` followed by the text-block
+    opener ``{4:`` and a matching ``-}`` terminator at the end::
+
+        {1:F01ASBBNZ2AAXXX000000000001}{2:I942ASBBNZ2AXXXXN}{4:
+        :20:...
+        ...
+        -}
+
+    This strips the leading header blocks and the ``{4:`` opener so the
+    ``:tag:`` body tokenises cleanly, and removes a trailing ``-}``
+    block-4 terminator. A message with no envelope is returned unchanged,
+    so plain ``:tag:`` payloads keep working.
+
+    Args:
+        text: The raw MT942 payload, with or without a SWIFT envelope.
+
+    Returns:
+        The payload with any SWIFT envelope removed.
+    """
+    body = text
+    open_match = _BLOCK4_OPEN_RE.search(body)
+    if open_match is not None:
+        # Everything before ``{4:`` is header blocks; the body is what
+        # follows the opener. (Header blocks never contain ``:tag:`` lines,
+        # so even a malformed header is safely discarded.)
+        body = body[open_match.end() :]
+        body = _BLOCK4_CLOSE_RE.sub("", body)
+    else:
+        # No text-block opener: strip any standalone header blocks that may
+        # still prefix the body, leaving the bare ``:tag:`` payload.
+        body = _ENVELOPE_BLOCK_RE.sub("", body)
+    return body
 
 
 # ─── Tokeniser ──────────────────────────────────────────────────────────────
@@ -360,11 +435,19 @@ def _parse_line(state: _State, value: str) -> None:
     still carry well-formed lines we want, and a single bad row should
     not abort the whole parse.
 
+    The first physical line is the statement line proper (parsed by the
+    ``:61:`` grammar). Any following line(s) are the optional SWIFT
+    *supplementary details* subfield — captured separately and folded
+    into the transaction's description (see :func:`_fold_description`),
+    never glued onto the statement-line tail where they would corrupt the
+    reference.
+
     Args:
         state: The accumulator to append the parsed record to.
-        value: The ``:61:`` field value.
+        value: The ``:61:`` field value (possibly multi-line).
     """
-    match = _LINE_RE.match(value.replace("\n", ""))
+    first_line, _, supplementary = value.partition("\n")
+    match = _LINE_RE.match(first_line)
     if match is None:
         return
     value_date, booking_date = _entry_dates(
@@ -374,6 +457,7 @@ def _parse_line(state: _State, value: str) -> None:
     if match.group("dc") == "D":
         amount = -amount
     transaction_id, reference = _split_reference(match.group("rest") or "")
+    supplementary_text = supplementary.strip() or None
     state.records.append(
         {
             "amount": amount,
@@ -381,9 +465,39 @@ def _parse_line(state: _State, value: str) -> None:
             "booking_date": booking_date,
             "transaction_id": transaction_id,
             "reference": reference,
-            "description": None,
+            "supplementary": supplementary_text,
+            # Default the description to the supplementary text so a
+            # ``:61:`` with supplementary details but no following ``:86:``
+            # still carries them; a later ``:86:`` re-folds both together.
+            "description": supplementary_text,
         }
     )
+
+
+def _fold_description(
+    supplementary: object, information: str | None
+) -> str | None:
+    """Combine ``:61:`` supplementary details and ``:86:`` information.
+
+    The transaction description is the ``:61:`` supplementary-details
+    text and the ``:86:`` information field joined by a newline, in that
+    order. Either may be absent; when both are absent the result is
+    ``None``.
+
+    Args:
+        supplementary: The ``:61:`` supplementary-details text, or
+            ``None``.
+        information: The ``:86:`` information text, or ``None``.
+
+    Returns:
+        The combined description, or ``None`` when nothing was present.
+    """
+    parts = [
+        part
+        for part in (supplementary, information)
+        if isinstance(part, str) and part
+    ]
+    return "\n".join(parts) if parts else None
 
 
 def _handle_field(state: _State, tag: str, value: str) -> None:
@@ -408,7 +522,10 @@ def _handle_field(state: _State, tag: str, value: str) -> None:
         _parse_line(state, value)
     elif tag == "86":
         if state.records:
-            state.records[-1]["description"] = value
+            record = state.records[-1]
+            record["description"] = _fold_description(
+                record.get("supplementary"), value or None
+            )
     elif tag == "90D":
         state.debit_count, state.debit_sum = _parse_summary(value, "90D")
     elif tag == "90C":
@@ -430,7 +547,7 @@ def _accumulate(text: str) -> _State:
             missing or empty.
     """
     state = _State()
-    for tag, value in _iter_fields(text):
+    for tag, value in _iter_fields(_strip_envelope(text)):
         _handle_field(state, tag, value)
     if state.reference is None:
         raise ValueError("MT942 payload missing required :20: reference")

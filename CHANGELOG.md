@@ -5,6 +5,61 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.12] - 2026-06-24
+
+### Added
+
+- A **real-world-format, third-party MT942 fixture**,
+  `tests/fixtures/real/centrapay_swift-parser_test2.mt942`, vendored
+  byte-for-byte from the Apache-2.0 `centrapay/swift-parser` test corpus
+  (provenance and licensing in `tests/fixtures/real/PROVENANCE.md`). It is
+  genuinely messy and exercises constructs the synthetic fixtures did not.
+- A **golden test for the real file** (`tests/test_real_corpus.py`) that
+  pins the exact parsed `Transaction` list (signed `Decimal` amounts,
+  dates, multi-line `:86:` descriptions, currency, `account_id`,
+  transaction id and reference) and the full nine-field `Mt942Summary` —
+  the proof the messy real file parses correctly. `load_mt942`,
+  `load_mt942_file`, `summarize_mt942` and `Mt942Summary` are all
+  exercised against it.
+- **Mutation testing** with `mutmut` (`make mutation`, `[tool.mutmut]`
+  config) as a rigorous answer to "100% line coverage is weak evidence".
+  Final score: **348/355 mutants killed (97.7%)**; the 7 survivors are
+  all genuine *equivalent mutants*, each justified in
+  `tests/MUTATION.md`. New targeted tests were added to kill every
+  non-equivalent survivor.
+
+### Fixed
+
+- **SWIFT message envelope** is now stripped before parsing. Real MT942
+  messages wrap the body in header blocks `{1:...}{2:...}` and a text
+  block `{4:` … `-}`. Previously the trailing `-}` was glued onto the
+  last field value (a malformed `:90C:` field, raising `ValueError`) and
+  header lines risked being misread; now the envelope is removed and the
+  `:tag:` body parses cleanly.
+- **Amounts ending on the decimal comma with no fractional digits** are
+  accepted: `:61:…D5000,` → `Decimal("5000")` and `:34F:NZD0,` →
+  `Decimal("0")`. (These already round-tripped through `Decimal`, now
+  pinned by tests.)
+- **`:34F:` floor limit with an embedded D/C indicator** (`:34F:NZDC0,`)
+  parses the currency correctly regardless of the indicator.
+- **Multi-line `:86:`** continuation lines (e.g. `/BAI/…`, `/BENM/…`,
+  `/ACNO/…`) are appended to the transaction `description`,
+  newline-separated.
+- **Supplementary-details line right after `:61:`** (e.g. a bare
+  `Transfer` or `wording/NBKT` before the `:86:`) is no longer glued onto
+  the statement-line tail — which previously **corrupted the reference**
+  (`NTRFNONREF` became `NTRFNONREFTransfer`). It is now captured as the
+  SWIFT supplementary-details subfield and folded into the description
+  (supplementary text first, then the `:86:` content, joined by
+  newlines); a `:61:` with supplementary details but no following `:86:`
+  keeps that text as its description. The public API is unchanged.
+
+### Changed
+
+- Trimmed heavy CI for a small parsing library: removed the `codeql.yml`
+  and `security.yml` workflows (and `.github/codeql/`). The retained
+  workflows are `ci.yml`, `pr.yml`, and `release.yml`.
+
 ## [0.0.11] - 2026-06-24
 
 ### Added
