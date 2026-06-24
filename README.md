@@ -25,6 +25,7 @@ output (deduplication, categorisation, exports).
 - [Supported Fields](#supported-fields)
 - [Field Mapping](#field-mapping)
 - [Summaries](#summaries)
+- [Errors](#errors)
 - [Examples](#examples)
 - [When not to use this loader](#when-not-to-use-this-loader)
 - [Development](#development)
