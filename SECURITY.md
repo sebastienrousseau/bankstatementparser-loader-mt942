@@ -9,7 +9,7 @@ pre-`1.0`, older `0.0.x` versions do not receive security fixes.
 
 | Version | Status | Receives security fixes? |
 | :--- | :--- | :--- |
-| `0.0.1` (latest) | Current | ✅ Yes |
+| `0.0.10` (latest) | Current | ✅ Yes |
 | _none yet_ | - | - |
 
 ## Reporting a vulnerability

@@ -63,6 +63,6 @@ tier.
 
 | Version | Supported? |
 | :--- | :--- |
-| 0.0.1 (latest) | ✅ |
+| 0.0.10 (latest) | ✅ |
 
 Requires Python 3.10+ and `bankstatementparser >= 0.0.9`.
