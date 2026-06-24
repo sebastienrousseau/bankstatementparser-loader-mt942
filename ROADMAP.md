@@ -6,7 +6,7 @@
 MT942 into `bankstatementparser` `Transaction` objects, correctly and
 without surprises. The roadmap reflects that focus.
 
-## Shipped — v0.0.1
+## Shipped — v0.0.10
 
 - `load_mt942`, `load_mt942_file`, `summarize_mt942`, and `Mt942Summary`.
 - Full tag coverage: `:20:`, `:25:`, `:28C:`, `:34F:`, `:13D:`, `:61:`,

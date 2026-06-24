@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.1] - 2026-06-24
+## [0.0.10] - 2026-06-24
 
 ### Added
 
@@ -37,12 +37,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `ValueError`.
 - Runnable examples (`examples/01_load_mt942.py`,
   `examples/02_summarize_mt942.py`), exercised in CI.
+- Regression and documentation-accuracy test suites:
+  - `tests/test_regression_examples.py` runs every `examples/*.py`
+    script as a subprocess and asserts a clean (`0`) exit.
+  - `tests/test_regression_docs.py` executes every fenced `python`
+    block in `README.md` in-process via a `BLOCK_SPECS` registry, so a
+    documented snippet can never silently rot.
+  - `tests/test_docs_accuracy.py` asserts the README version/badge,
+    public-symbol coverage, example paths, and numeric/field claims all
+    match the code.
 - Quality gates pinned at 100% from the initial release:
   - `pytest --cov=bankstatementparser_loader_mt942 --cov-branch
-    --cov-fail-under=100` (38 tests, full line + branch coverage).
+    --cov-fail-under=100` (65 tests, full line + branch coverage).
   - `interrogate --fail-under=100` for module and function docstring
     coverage.
   - `ruff` and `mypy --strict` clean.
 - Python 3.10+ support; depends on `bankstatementparser` (>= 0.0.9).
 
-[0.0.1]: https://github.com/sebastienrousseau/bankstatementparser-loader-mt942/releases/tag/v0.0.1
+[0.0.10]: https://github.com/sebastienrousseau/bankstatementparser-loader-mt942/releases/tag/v0.0.10
