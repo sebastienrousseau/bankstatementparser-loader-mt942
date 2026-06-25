@@ -397,7 +397,7 @@ def test_load_mt942_file_accepts_str_path(tmp_path) -> None:
     assert len(txns) == 2
 
 
-# ─── Real-world constructs (v0.0.12) ─────────────────────────────────────────
+# ─── Real-world constructs (v0.0.13) ─────────────────────────────────────────
 
 
 def test_swift_envelope_with_block4_is_stripped() -> None:

@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.13] - 2026-06-25
+
+### Changed
+
+- **Audit pass.** Linked `tests/fixtures/real/PROVENANCE.md` from the README so the vendored real-world fixture's source/license is discoverable.
+
 ## [0.0.12] - 2026-06-24
 
 ### Added
