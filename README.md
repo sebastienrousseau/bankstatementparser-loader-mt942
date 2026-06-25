@@ -125,7 +125,9 @@ never aborts the whole parse.
 
 Genuine bank/SWIFT exports are messier than the tidy sample above. The
 loader handles the following (pinned by a golden test over a real,
-third-party fixture in `tests/fixtures/real/`):
+third-party fixture in `tests/fixtures/real/`, whose source, licensing,
+and provenance are documented in
+[`tests/fixtures/real/PROVENANCE.md`](tests/fixtures/real/PROVENANCE.md)):
 
 - **SWIFT message envelope.** Messages wrapped in the header blocks
   `{1:...}{2:...}{3:...}` and the text block `{4:` … `-}` are unwrapped
