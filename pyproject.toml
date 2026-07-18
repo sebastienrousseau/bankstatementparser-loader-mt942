@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bankstatementparser-loader-mt942"
-version = "0.0.13"
+version = "0.0.14"
 description = "SWIFT MT942 Interim Transaction Report loader for the bankstatementparser library — parses MT942 into bankstatementparser Transaction objects."
 authors = ["Sebastien Rousseau <sebastian.rousseau@gmail.com>"]
 license = "Apache-2.0"
@@ -13,7 +13,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
-bankstatementparser = ">=0.0.9"
+bankstatementparser = ">=0.0.11"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=9.0.3,<10.0.0"
