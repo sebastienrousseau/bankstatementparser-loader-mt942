@@ -36,4 +36,4 @@ __all__ = [
     "summarize_mt942",
 ]
 
-__version__ = "0.0.14"
+__version__ = "0.0.15"
