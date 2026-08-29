@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bankstatementparser-loader-mt942"
-version = "0.0.15"
+version = "0.0.16"
 description = "SWIFT MT942 Interim Transaction Report loader for the bankstatementparser library — parses MT942 into bankstatementparser Transaction objects."
 authors = ["Sebastien Rousseau <sebastian.rousseau@gmail.com>"]
 license = "Apache-2.0 OR MIT"
@@ -24,7 +24,11 @@ mypy = ">=1.11,<3.0"
 bandit = "^1.7.0"
 interrogate = "^1.7.0"
 mutmut = "^3.0"
-
+# tests/test_suite_conformance.py parses pyproject.toml. tomllib is
+# stdlib only from 3.11 and the suite floor is 3.10, so without the
+# backport the conformance gate does not run there at all.
+tomli = { version = ">=2", python = "<3.11" }
+packaging = ">=23"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
@@ -43,7 +47,13 @@ tests_dir = ["tests/"]
 # are out of scope for mutation testing.
 runner = "python -m pytest -x -q --no-header -p no:cacheprovider tests/test_loader.py tests/test_corpus.py tests/test_real_corpus.py"
 
+# tests/test_suite_conformance.py is generated and vendored from one
+# canonical copy shared across the suite, and checksummed by its own
+# test. The suite uses three different line lengths, so letting each
+# repository's formatter rewrite it would make the checksum
+# unsatisfiable everywhere.
 [tool.black]
+extend-exclude = "tests/test_suite_conformance\\.py"
 line-length = 79
 target-version = ['py310']
 
