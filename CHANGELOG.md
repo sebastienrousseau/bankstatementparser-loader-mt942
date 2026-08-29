@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.16] - 2026-08-29
+
+Brings this repository onto the **suite conformance gate**.
+
+### Added
+
+- **`benches/bench_load_mt942.py`** — MT942 is the intraday report, so
+  the same account is parsed again every few minutes, all day, across
+  every account being watched. Throughput matters differently from an
+  end-of-day statement.
+
+  **Loading is linear** — `us/txn` at 10,000 transactions is 0.72x the
+  cost at 10. **`summarize_mt942` costs up to 0.44x `load_mt942`.**
+
+  Worth recording for comparison: MT942 costs roughly **5x more per
+  transaction than BAI2** (about 19–23 us against 3–4 us). Different
+  formats, different work — but the number is now visible rather than
+  assumed.
+
+  Nothing asserts a timing threshold — wall-clock is not comparable
+  between machines, and a flaky performance gate teaches people to ignore
+  red. CI runs `--quick`, so a benchmark that stops compiling fails the
+  build rather than rotting into a file that reads as verified.
+
+- **`tests/test_suite_conformance.py`** — invariants shared by every
+  repository in the suite, vendored from one canonical copy and
+  checksummed by its own test.
+
+### Changed
+
+- CI lints, formats and runs `benches/` alongside everything else.
+- `tomli` (on 3.10) and `packaging` are named as dev dependencies; the
+  conformance gate parses `pyproject.toml` and needs both.
+- `tests/test_suite_conformance.py` is excluded from black: it is
+  generated, and the suite uses three different line lengths.
+
 ## [0.0.15] - 2026-08-28
 
 ### Changed
