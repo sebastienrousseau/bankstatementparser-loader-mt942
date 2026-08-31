@@ -31,6 +31,7 @@ from bankstatementparser_loader_mt942.loader import (
 )
 
 __all__ = [
+    "Mt942StatementParser",
     "Mt942Summary",
     "load_mt942",
     "load_mt942_file",

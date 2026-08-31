@@ -96,8 +96,16 @@ and amounts are exact `Decimal` values (SWIFT's comma decimal separator
 To read from a file instead of a string:
 
 ```python
-from bankstatementparser_loader_mt942 import load_mt942_file
+from bankstatementparser_loader_mt942 import (
+    Mt942StatementParser,
+    load_mt942_file,
+)
 
+# Use as a BankStatementParser instance
+parser = Mt942StatementParser("statement.mt942")
+df = parser.parse()
+
+# Or load directly to Transaction models
 transactions = load_mt942_file("statement.mt942")
 ```
 
