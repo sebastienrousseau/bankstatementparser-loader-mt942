@@ -144,7 +144,10 @@ exclude = [
 ]
 
 [[tool.mypy.overrides]]
-module = "bankstatementparser.*"
+module = [
+    "bankstatementparser.*",
+    "pandas.*",
+]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
@@ -155,6 +158,7 @@ ignore_missing_imports = true
 module = "bankstatementparser_loader_mt942.*"
 disallow_any_generics = false
 warn_return_any = false
+disallow_subclassing_any = false
 
 [[tool.mypy.overrides]]
 module = "tests.*"
