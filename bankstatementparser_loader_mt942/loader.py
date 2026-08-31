@@ -86,9 +86,13 @@ from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from pathlib import Path
 
+import pandas as pd
+from bankstatementparser.base_parser import BankStatementParser
+from bankstatementparser.record_types import SummaryRecord
 from bankstatementparser.transaction_models import Transaction
 
 __all__ = [
+    "Mt942StatementParser",
     "Mt942Summary",
     "load_mt942",
     "load_mt942_file",
@@ -652,10 +656,6 @@ def summarize_mt942(text: str) -> Mt942Summary:
         transaction_count=len(state.records),
     )
 
-import pandas as pd
-from bankstatementparser.base_parser import BankStatementParser
-from bankstatementparser.record_types import SummaryRecord
-
 
 class Mt942StatementParser(BankStatementParser):
     """BankStatementParser-compatible wrapper for SWIFT MT942 statement files."""
@@ -681,9 +681,16 @@ class Mt942StatementParser(BankStatementParser):
         s = summarize_mt942(text)
         self._summary = {
             "account_id": s.account_id,
-            "statement_date": str(df["booking_date"].iloc[-1]) if not df.empty and "booking_date" in df.columns and df["booking_date"].iloc[-1] is not None else None,
+            "statement_date": (
+                str(df["booking_date"].iloc[-1])
+                if not df.empty
+                and "booking_date" in df.columns
+                and df["booking_date"].iloc[-1] is not None
+                else None
+            ),
             "transaction_count": s.transaction_count,
-            "total_amount": (s.credit_sum or Decimal("0")) - (s.debit_sum or Decimal("0")),
+            "total_amount": (s.credit_sum or Decimal("0"))
+            - (s.debit_sum or Decimal("0")),
             "opening_balance": None,
             "closing_balance": None,
             "currency": s.currency,

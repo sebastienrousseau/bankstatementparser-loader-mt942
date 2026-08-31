@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
 
@@ -593,8 +594,9 @@ def test_mt942_statement_parser_wrapper(tmp_path: Path) -> None:
     assert parser.get_summary()["transaction_count"] == 2
 
     empty_file = tmp_path / "empty.mt942"
-    empty_file.write_text(":20:EMPTY\n:25:ACC\n:34F:EURC0,00\n-\n", encoding="utf-8")
+    empty_file.write_text(
+        ":20:EMPTY\n:25:ACC\n:34F:EURC0,00\n-\n", encoding="utf-8"
+    )
     empty_parser = Mt942StatementParser(empty_file)
     assert empty_parser.parse().empty
     assert empty_parser.get_summary()["transaction_count"] == 0
-
