@@ -650,3 +650,41 @@ def summarize_mt942(text: str) -> Mt942Summary:
         credit_sum=state.credit_sum,
         transaction_count=len(state.records),
     )
+
+import pandas as pd
+from bankstatementparser.base_parser import BankStatementParser
+from bankstatementparser.record_types import SummaryRecord
+
+
+class Mt942StatementParser(BankStatementParser):
+    """BankStatementParser-compatible wrapper for SWIFT MT942 statement files."""
+
+    def __init__(self, file_name: str | Path) -> None:
+        super().__init__(file_name)
+        self._parsed_df: pd.DataFrame | None = None
+        self._summary: SummaryRecord | None = None
+
+    def parse(self) -> pd.DataFrame:
+        if self._parsed_df is not None:
+            return self._parsed_df.copy()
+        txs = load_mt942_file(self.file_name)
+        records = [tx.model_dump() for tx in txs]
+        self._parsed_df = pd.DataFrame(records)
+        return self._parsed_df.copy()
+
+    def get_summary(self) -> SummaryRecord:
+        if self._summary is not None:
+            return self._summary
+        df = self.parse()
+        text = Path(self.file_name).read_text(encoding="utf-8")
+        s = summarize_mt942(text)
+        self._summary = {
+            "account_id": s.account_id,
+            "statement_date": str(df["booking_date"].iloc[-1]) if not df.empty and "booking_date" in df.columns and df["booking_date"].iloc[-1] is not None else None,
+            "transaction_count": s.transaction_count,
+            "total_amount": (s.credit_amount or Decimal("0")) - (s.debit_amount or Decimal("0")),
+            "opening_balance": None,
+            "closing_balance": None,
+            "currency": s.currency,
+        }
+        return self._summary
