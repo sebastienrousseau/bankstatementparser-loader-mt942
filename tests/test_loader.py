@@ -558,3 +558,43 @@ def test_malformed_credit_summary_error_names_tag_exactly() -> None:
     """The ``:90C:`` error message uses the exact tag, not a mutated one."""
     with pytest.raises(ValueError, match=r"^Malformed :90C: summary field"):
         summarize_mt942(":20:REF\n:25:ACC\n:90C:JUNK\n")
+
+
+def test_mt942_statement_parser_wrapper(tmp_path: Path) -> None:
+    """Mt942StatementParser integrates with BankStatementParser protocol."""
+    from bankstatementparser_loader_mt942.loader import Mt942StatementParser
+
+    mt942_text = (
+        ":20:REF001\n"
+        ":25:DE89370400440532013000\n"
+        ":34F:EURC0,00\n"
+        ":61:2506240624C500,00NTRFINV1\n"
+        ":86:Payment 1\n"
+        ":61:2506240624D200,00NTRFINV2\n"
+        ":86:Payment 2\n"
+        ":90D:1EUR200,00\n"
+        ":90C:1EUR500,00\n"
+        "-\n"
+    )
+    test_file = tmp_path / "test.mt942"
+    test_file.write_text(mt942_text, encoding="utf-8")
+
+    parser = Mt942StatementParser(test_file)
+    df = parser.parse()
+    assert len(df) == 2
+    # Cache hit check
+    assert len(parser.parse()) == 2
+
+    summary = parser.get_summary()
+    assert summary["transaction_count"] == 2
+    assert summary["currency"] == "EUR"
+    assert summary["account_id"] == "DE89370400440532013000"
+    # Cache hit check
+    assert parser.get_summary()["transaction_count"] == 2
+
+    empty_file = tmp_path / "empty.mt942"
+    empty_file.write_text(":20:EMPTY\n:25:ACC\n:34F:EURC0,00\n-\n", encoding="utf-8")
+    empty_parser = Mt942StatementParser(empty_file)
+    assert empty_parser.parse().empty
+    assert empty_parser.get_summary()["transaction_count"] == 0
+

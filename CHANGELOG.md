@@ -9,11 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `Mt942StatementParser` adapter registered under `bankstatementparser.loaders` entrypoint.
-
-### Changed
-
-- Updated `bankstatementparser` dependency floor to `>=0.0.19`.
+- `Mt942StatementParser` implementing `BankStatementParser` interface.
+- Registered entry point `bankstatementparser.loaders` for `mt942`.
+- Bumped dependency to `bankstatementparser >= 0.0.19`.
 
 ## [0.0.18] - 2026-08-29
 
@@ -254,7 +252,7 @@ the run, locally as well as in CI.
   - `ruff` and `mypy --strict` clean.
 - Python 3.10+ support; depends on `bankstatementparser` (>= 0.0.9).
 
+[0.0.19]: https://github.com/sebastienrousseau/bankstatementparser-loader-mt942/releases/tag/v0.0.19
+[0.0.18]: https://github.com/sebastienrousseau/bankstatementparser-loader-mt942/releases/tag/v0.0.18
 [0.0.11]: https://github.com/sebastienrousseau/bankstatementparser-loader-mt942/releases/tag/v0.0.11
 [0.0.10]: https://github.com/sebastienrousseau/bankstatementparser-loader-mt942/releases/tag/v0.0.10
-
-[0.0.19]: https://github.com/sebastienrousseau/bankstatementparser-loader-mt942/releases/tag/v0.0.19

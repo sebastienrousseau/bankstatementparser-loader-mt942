@@ -84,6 +84,7 @@ from collections.abc import Iterator
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
+from pathlib import Path
 
 from bankstatementparser.transaction_models import Transaction
 
@@ -682,7 +683,7 @@ class Mt942StatementParser(BankStatementParser):
             "account_id": s.account_id,
             "statement_date": str(df["booking_date"].iloc[-1]) if not df.empty and "booking_date" in df.columns and df["booking_date"].iloc[-1] is not None else None,
             "transaction_count": s.transaction_count,
-            "total_amount": (s.credit_amount or Decimal("0")) - (s.debit_amount or Decimal("0")),
+            "total_amount": (s.credit_sum or Decimal("0")) - (s.debit_sum or Decimal("0")),
             "opening_balance": None,
             "closing_balance": None,
             "currency": s.currency,
