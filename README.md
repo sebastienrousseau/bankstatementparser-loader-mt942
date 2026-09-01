@@ -1,21 +1,29 @@
-# bankstatementparser-loader-mt942: SWIFT MT942 loader
+<!-- SPDX-License-Identifier: Apache-2.0 OR MIT -->
 
-[![PyPI Version][pypi-badge]][pypi-url]
-[![Python Versions][python-versions-badge]][pypi-url]
-[![License][license-badge]][license-url]
-[![Tests][tests-badge]][tests-url]
-[![Quality][quality-badge]][tests-url]
+<p align="center">
+  <img
+    src="https://cloudcdn.pro/bankstatementparser/v1/logos/bankstatementparser.svg"
+    alt="bankstatementparser-loader-mt942 logo"
+    width="120"
+    height="120"
+  />
+</p>
 
-**Parse SWIFT MT942 _Interim Transaction Report_ files into
-[`bankstatementparser`][core] `Transaction` objects.** A single
-`load_mt942(text)` call returns a list of
-`bankstatementparser.transaction_models.Transaction`, ready for every
-downstream consumer that already works with the core library's parser
-output (deduplication, categorisation, exports).
+<h1 align="center">bankstatementparser-loader-mt942</h1>
 
-> The core [`bankstatementparser`][core] library parses PDF and CSV
-> statements but does **not** understand the SWIFT MT942 wire format.
-> This loader fills that gap without changing the core data model.
+<p align="center">
+  <b>A SWIFT MT942 interim transaction report loader plugin that parses MT942 files into <code>bankstatementparser</code> <code>Transaction</code> objects.</b>
+</p>
+
+<p align="center">
+  <a href="https://pypi.org/project/bankstatementparser-loader-mt942/"><img src="https://img.shields.io/pypi/v/bankstatementparser-loader-mt942?style=for-the-badge" alt="PyPI version" /></a>
+  <a href="https://pypi.org/project/bankstatementparser-loader-mt942/"><img src="https://img.shields.io/pypi/pyversions/bankstatementparser-loader-mt942.svg?style=for-the-badge" alt="Python versions" /></a>
+  <a href="https://pypi.org/project/bankstatementparser-loader-mt942/"><img src="https://img.shields.io/pypi/dm/bankstatementparser-loader-mt942.svg?style=for-the-badge" alt="PyPI downloads" /></a>
+  <a href="https://github.com/sebastienrousseau/bankstatementparser-loader-mt942/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/sebastienrousseau/bankstatementparser-loader-mt942/ci.yml?branch=main&label=Tests&style=for-the-badge" alt="Tests" /></a>
+  <a href="#license"><img src="https://img.shields.io/pypi/l/bankstatementparser-loader-mt942?style=for-the-badge" alt="License" /></a>
+</p>
+
+---
 
 ## Contents
 
