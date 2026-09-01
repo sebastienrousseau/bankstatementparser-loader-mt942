@@ -48,6 +48,7 @@ pytestmark = pytest.mark.skipif(
 
 #: Every public symbol the package promises via ``__all__``.
 PUBLIC_SYMBOLS = (
+    "Mt942StatementParser",
     "load_mt942",
     "load_mt942_file",
     "summarize_mt942",

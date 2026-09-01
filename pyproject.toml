@@ -1,19 +1,23 @@
 [tool.poetry]
 name = "bankstatementparser-loader-mt942"
-version = "0.0.18"
-description = "SWIFT MT942 Interim Transaction Report loader for the bankstatementparser library — parses MT942 into bankstatementparser Transaction objects."
+version = "0.0.19"
+description = "SWIFT MT942 Interim Transaction Report loader that parses MT942 wire format into bankstatementparser Transaction objects."
 authors = ["Sebastien Rousseau <sebastian.rousseau@gmail.com>"]
 license = "Apache-2.0 OR MIT"
 readme = "README.md"
 repository = "https://github.com/sebastienrousseau/bankstatementparser-loader-mt942"
 homepage = "https://bankstatementparser.com"
+keywords = ["mt942", "swift", "bank", "statement", "interim-transaction-report", "cash-management"]
 packages = [
     { include = "bankstatementparser_loader_mt942" },
 ]
 
+[tool.poetry.plugins."bankstatementparser.loaders"]
+mt942 = "bankstatementparser_loader_mt942.loader:Mt942StatementParser"
+
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
-bankstatementparser = ">=0.0.11"
+bankstatementparser = ">=0.0.18"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=9.0.3,<10.0.0"
@@ -29,6 +33,7 @@ mutmut = "^3.0"
 # backport the conformance gate does not run there at all.
 tomli = { version = ">=2", python = "<3.11" }
 packaging = ">=23"
+hypothesis = ">=6.82,<7"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
@@ -139,7 +144,10 @@ exclude = [
 ]
 
 [[tool.mypy.overrides]]
-module = "bankstatementparser.*"
+module = [
+    "bankstatementparser.*",
+    "pandas.*",
+]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
@@ -150,6 +158,7 @@ ignore_missing_imports = true
 module = "bankstatementparser_loader_mt942.*"
 disallow_any_generics = false
 warn_return_any = false
+disallow_subclassing_any = false
 
 [[tool.mypy.overrides]]
 module = "tests.*"

@@ -84,10 +84,15 @@ from collections.abc import Iterator
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
+from pathlib import Path
 
+import pandas as pd
+from bankstatementparser.base_parser import BankStatementParser
+from bankstatementparser.record_types import SummaryRecord
 from bankstatementparser.transaction_models import Transaction
 
 __all__ = [
+    "Mt942StatementParser",
     "Mt942Summary",
     "load_mt942",
     "load_mt942_file",
@@ -650,3 +655,47 @@ def summarize_mt942(text: str) -> Mt942Summary:
         credit_sum=state.credit_sum,
         transaction_count=len(state.records),
     )
+
+
+class Mt942StatementParser(BankStatementParser):
+    """BankStatementParser-compatible wrapper for SWIFT MT942 statement files."""
+
+    def __init__(self, file_name: str | Path) -> None:
+        """Initialize parser with path to SWIFT MT942 bank statement file."""
+        super().__init__(file_name)
+        self._parsed_df: pd.DataFrame | None = None
+        self._summary: SummaryRecord | None = None
+
+    def parse(self) -> pd.DataFrame:
+        """Parse SWIFT MT942 statement transactions into a pandas DataFrame."""
+        if self._parsed_df is not None:
+            return self._parsed_df.copy()
+        txs = load_mt942_file(self.file_name)
+        records = [tx.model_dump() for tx in txs]
+        self._parsed_df = pd.DataFrame(records)
+        return self._parsed_df.copy()
+
+    def get_summary(self) -> SummaryRecord:
+        """Return standardized summary record for the SWIFT MT942 statement."""
+        if self._summary is not None:
+            return self._summary
+        df = self.parse()
+        text = Path(self.file_name).read_text(encoding="utf-8")
+        s = summarize_mt942(text)
+        self._summary = {
+            "account_id": s.account_id,
+            "statement_date": (
+                str(df["booking_date"].iloc[-1])
+                if not df.empty
+                and "booking_date" in df.columns
+                and df["booking_date"].iloc[-1] is not None
+                else None
+            ),
+            "transaction_count": s.transaction_count,
+            "total_amount": (s.credit_sum or Decimal("0"))
+            - (s.debit_sum or Decimal("0")),
+            "opening_balance": None,
+            "closing_balance": None,
+            "currency": s.currency,
+        }
+        return self._summary

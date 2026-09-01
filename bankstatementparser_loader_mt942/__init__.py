@@ -23,6 +23,7 @@ a format the core library does not support — into
 """
 
 from bankstatementparser_loader_mt942.loader import (
+    Mt942StatementParser,
     Mt942Summary,
     load_mt942,
     load_mt942_file,
@@ -30,10 +31,11 @@ from bankstatementparser_loader_mt942.loader import (
 )
 
 __all__ = [
+    "Mt942StatementParser",
     "Mt942Summary",
     "load_mt942",
     "load_mt942_file",
     "summarize_mt942",
 ]
 
-__version__ = "0.0.18"
+__version__ = "0.0.19"
