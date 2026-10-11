@@ -62,7 +62,7 @@ never invents balances that are not present in the source.
 
 `bankstatementparser-loader-mt942` runs on macOS, Linux, and Windows and
 requires **Python 3.10+** and **pip**. It pulls in
-[`bankstatementparser`][core] (>= 0.0.18) automatically.
+[`bankstatementparser`][core] (>= 0.0.28) automatically.
 
 ```bash
 pip install bankstatementparser-loader-mt942
