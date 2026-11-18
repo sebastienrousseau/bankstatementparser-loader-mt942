@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.34] - 2026-11-18
+
+### Changed
+
+- Require `bankstatementparser >= 0.0.33`, the newest core release, and
+  align the version with the suite's 0.0.34 release. No other changes.
+
 ## [0.0.33] - 2026-11-18
 
 ### Changed
@@ -303,6 +310,7 @@ the run, locally as well as in CI.
   - `ruff` and `mypy --strict` clean.
 - Python 3.10+ support; depends on `bankstatementparser` (>= 0.0.9).
 
+[0.0.34]: https://github.com/sebastienrousseau/bankstatementparser-loader-mt942/releases/tag/v0.0.34
 [0.0.33]: https://github.com/sebastienrousseau/bankstatementparser-loader-mt942/releases/tag/v0.0.33
 [0.0.32]: https://github.com/sebastienrousseau/bankstatementparser-loader-mt942/releases/tag/v0.0.32
 [0.0.31]: https://github.com/sebastienrousseau/bankstatementparser-loader-mt942/releases/tag/v0.0.31
