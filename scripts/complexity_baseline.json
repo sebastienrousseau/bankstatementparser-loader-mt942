@@ -1,0 +1,28 @@
+{
+  "bankstatementparser_loader_mt942/loader.py": {
+    "file_lines": 701
+  },
+  "bankstatementparser_loader_mt942/loader.py::_handle_field": {
+    "cognitive": 16,
+    "cyclomatic": 15
+  },
+  "tests/test_corpus.py::test_each_transaction_matches_golden": {
+    "cyclomatic": 14
+  },
+  "tests/test_docs_accuracy.py::TestNumericClaims.test_summary_claims_match_parser": {
+    "cyclomatic": 11
+  },
+  "tests/test_loader.py": {
+    "file_lines": 602
+  },
+  "tests/test_real_corpus.py::test_real_file_transactions_match_golden": {
+    "cyclomatic": 14
+  },
+  "tests/test_suite_conformance.py": {
+    "file_lines": 678
+  },
+  "tests/test_suite_conformance.py::_dev_spec": {
+    "cognitive": 23,
+    "cyclomatic": 12
+  }
+}
