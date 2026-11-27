@@ -49,8 +49,8 @@ Amounts use the SWIFT comma decimal separator (``500,00``); they are
 converted to :class:`decimal.Decimal` (``Decimal("500.00")``)
 throughout. The fractional part is optional: a SWIFT amount may end on
 the decimal comma with no digits after it (``5000,`` → ``Decimal("5000")``,
-``0,`` → ``Decimal("0")``). Debit lines yield a negative amount, credit
-lines a positive amount. Unknown tags and the trailing ``-``
+``0,`` → ``Decimal("0")``). ``D``, ``RC`` and ``ED`` lines yield a
+negative amount; ``C``, ``RD`` and ``EC`` a positive one. Unknown tags and the trailing ``-``
 end-of-message marker are tolerated and ignored.
 
 Real-world MT942 messages are frequently wrapped in a **SWIFT message
@@ -90,6 +90,8 @@ import pandas as pd
 from bankstatementparser.base_parser import BankStatementParser
 from bankstatementparser.record_types import SummaryRecord
 from bankstatementparser.transaction_models import Transaction
+
+from bankstatementparser_loader_mt942._amounts import _comma_decimal
 
 __all__ = [
     "Mt942StatementParser",
@@ -133,12 +135,12 @@ _DATETIME_RE = re.compile(
 )
 
 # :61:2506240624C500,00NTRFREF//BANKREF
-#     ^vYYMMDD ^eMMDD(opt) ^DC ^Amt(comma-decimal) ^rest
+#     ^vYYMMDD ^eMMDD(opt) ^mark ^Amt(comma-decimal) ^rest
 # Same grammar as MT940 statement lines.
 _LINE_RE = re.compile(
     r"^(?P<vdate>\d{6})"
     r"(?P<edate>\d{4})?"
-    r"(?P<dc>[CD])"
+    r"(?P<dc>R?[CD]|E[CD])[A-Z]?"
     r"(?P<amt>[\d,]+)"
     r"(?P<rest>.*)$"
 )
@@ -261,7 +263,7 @@ def _iter_fields(text: str) -> Iterator[tuple[str, str]]:
             if index + 1 < len(matches)
             else len(text)
         )
-        value = text[value_start:value_end].strip()
+        value = text[value_start:value_end].strip().replace("\r\n", "\n")
         # Drop a trailing end-of-message marker on the final field.
         if value.endswith("\n-"):
             value = value[:-2].strip()
@@ -271,24 +273,6 @@ def _iter_fields(text: str) -> Iterator[tuple[str, str]]:
 
 
 # ─── Field parsers ──────────────────────────────────────────────────────────
-
-
-def _comma_decimal(value: str) -> Decimal:
-    """Convert a SWIFT comma-decimal amount to a :class:`Decimal`.
-
-    SWIFT uses a comma as the decimal separator (``500,00``); this
-    swaps it for a period before constructing the
-    :class:`decimal.Decimal` so arithmetic and formatting behave as
-    expected.
-
-    Args:
-        value: The amount string, e.g. ``"500,00"``.
-
-    Returns:
-        The equivalent :class:`decimal.Decimal`, e.g.
-        ``Decimal("500.00")``.
-    """
-    return Decimal(value.replace(",", "."))
 
 
 def _format_yymmdd(value: str) -> date:
@@ -459,7 +443,7 @@ def _parse_line(state: _State, value: str) -> None:
         match.group("vdate"), match.group("edate")
     )
     amount = _comma_decimal(match.group("amt"))
-    if match.group("dc") == "D":
+    if match.group("dc") in ("D", "RC", "ED"):
         amount = -amount
     transaction_id, reference = _split_reference(match.group("rest") or "")
     supplementary_text = supplementary.strip() or None

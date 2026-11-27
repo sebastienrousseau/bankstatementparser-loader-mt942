@@ -1,8 +1,8 @@
 blank_issues_enabled: true
 contact_links:
-  - name: GitHub Discussions
-    url: https://github.com/sebastienrousseau/bankstatementparser-loader-mt942/discussions
-    about: Ask usage questions and start broader design discussions.
+  - name: GitHub Discussions (suite-wide)
+    url: https://github.com/sebastienrousseau/bankstatementparser/discussions
+    about: Ask usage questions and start broader design discussions for the bankstatementparser suite.
   - name: bankstatementparser-loader-mt942 Documentation
     url: https://github.com/sebastienrousseau/bankstatementparser-loader-mt942/blob/main/README.md
     about: Read the README before opening an issue.

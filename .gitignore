@@ -41,3 +41,13 @@ tmp/
 .mypy_cache/
 .ruff_cache/
 bankstatementparser_loader_mt942.egg-info/
+
+# libFuzzer working corpus and reproducers from fuzz/fuzz_load_mt942.py
+.fuzz-corpus/
+crash-*
+leak-*
+timeout-*
+oom-*
+
+# MkDocs build output
+site/

@@ -8,7 +8,7 @@ bankstatementparser-loader-mt942 without prior context.
 
 ## The pipeline
 
-```
+```text
 MT942 text (string or file)
         |  load_mt942 / load_mt942_file / summarize_mt942
         v
@@ -30,11 +30,15 @@ core [`bankstatementparser`](https://github.com/sebastienrousseau/bankstatementp
 
 | Area | Module | Responsibility |
 | :--- | :--- | :--- |
-| **Loader** | `bankstatementparser_loader_mt942/loader.py` | Tokeniser, per-tag field parsers, public API |
+| **Loader** | `bankstatementparser_loader_mt942/loader.py` | Tokeniser, per-tag field parsers, public API, `Mt942StatementParser` |
+| **Amounts** | `bankstatementparser_loader_mt942/_amounts.py` | `_comma_decimal`: validates a SWIFT `15d` comma-decimal and converts it to `Decimal` |
 | **Package surface** | `bankstatementparser_loader_mt942/__init__.py` | Re-exports the public API and `__version__` |
-| **Tests** | `tests/test_loader.py` | 100% line + branch regression suite |
+| **Tests** | `tests/` | 100% line + branch regression suite (`test_loader.py` and focused files for amounts, line endings and debit/credit marks), golden corpora over synthetic and real fixtures, Hypothesis properties (`test_fuzz.py`), docs and examples accuracy, release notes, and the shared suite conformance gate |
+| **Fuzzing** | `fuzz/fuzz_load_mt942.py`, `fuzz/corpus/` | Atheris target for `load_mt942` and `summarize_mt942`, run by the CI `Fuzz` job |
+| **Benchmarks** | `benches/bench_load_mt942.py` | Load and summary cost as a poll grows; `--quick` runs in CI |
 | **Examples** | `examples/` | One runnable script per usage shape |
-| **Release helpers** | `scripts/verify_versions.py` | Asserts `__version__`, `pyproject.toml`, and `CHANGELOG.md` agree |
+| **Manual** | `mkdocs.yml`, `docs/` | The MkDocs Material user manual and API reference, deployed to GitHub Pages |
+| **Release helpers** | `scripts/` | `verify_versions.py` (`__version__`, `pyproject.toml` and `CHANGELOG.md` agree), `release_notes.py` (release body), `export_locked_requirements.py` (hashed exports of `poetry.lock`), `check_complexity.py` (complexity baseline), `check_suite_consistency.py` (published suite agrees), `readme-check.sh` (README template) |
 
 ## Public API
 
@@ -52,8 +56,9 @@ core [`bankstatementparser`](https://github.com/sebastienrousseau/bankstatementp
    end-of-message marker and blank lines are absorbed.
 2. **Field parsers** — `_parse_line` (`:61:`), `_parse_datetime_stamp`
    (`:13D:`), `_parse_summary` (`:90D:` / `:90C:`), plus the floor-limit
-   and amount helpers. SWIFT comma-decimal amounts are converted to
-   `Decimal` by `_comma_decimal` consistently.
+   and amount helpers. SWIFT comma-decimal amounts are validated and
+   converted to `Decimal` by `_comma_decimal` (in `_amounts.py`)
+   consistently.
 3. **`_accumulate`** — threads a mutable `_State` through the field loop,
    then enforces the mandatory `:20:` / `:25:` invariant.
 4. **`load_mt942`** — turns each accumulated record into a `Transaction`

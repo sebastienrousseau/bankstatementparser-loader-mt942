@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bankstatementparser-loader-mt942"
-version = "0.0.35"
+version = "0.0.36"
 description = "SWIFT MT942 Interim Transaction Report loader that parses MT942 wire format into bankstatementparser Transaction objects."
 authors = ["Sebastien Rousseau <sebastian.rousseau@gmail.com>"]
 license = "Apache-2.0 OR MIT"
@@ -17,7 +17,7 @@ mt942 = "bankstatementparser_loader_mt942.loader:Mt942StatementParser"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
-bankstatementparser = ">=0.0.34"
+bankstatementparser = ">=0.0.35"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=9.0.3,<10.0.0"
@@ -34,6 +34,34 @@ mutmut = "^3.0"
 tomli = { version = ">=2", python = "<3.11" }
 packaging = ">=23"
 hypothesis = ">=6.82,<7"
+build = "^1.6.1"
+# pip-audit pulls filelock (via cachecontrol[filecache]). Every filelock
+# up to 4.2.0 carries advisories and 4.2.1 needs Python 3.11, so pip-audit
+# is installed on 3.11+ only (its CI job runs on 3.12) and the floor keeps
+# any affected filelock from resolving.
+pip-audit = { version = "^2.10.1", python = ">=3.11" }
+filelock = { version = ">=4.2.1", python = ">=3.11" }
+
+# The user manual (mkdocs.yml, deployed to GitHub Pages by
+# .github/workflows/docs.yml). CI installs requirements/docs.txt, the
+# hashed export of this group. mkdocs-material 9.8 needs Python 3.11, and
+# the manual is built on 3.12 only, so the group is marked to match.
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
+mkdocs-material = { version = "^9.8", python = ">=3.11" }
+mkdocstrings = { version = ">=1.0", python = ">=3.11", extras = ["python"] }
+
+# Coverage-guided fuzzing of the MT942 loader (fuzz/fuzz_load_mt942.py,
+# run by the CI "Fuzz" job). Atheris ships wheels for Linux x86_64 on CPython
+# 3.12+ only and no sdist, so the group is optional and marked to match.
+[tool.poetry.group.fuzz]
+optional = true
+
+[tool.poetry.group.fuzz.dependencies]
+atheris = { version = "^3.1.0", python = ">=3.12", markers = "sys_platform == 'linux' and platform_machine == 'x86_64'" }
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
@@ -43,14 +71,27 @@ build-backend = "poetry.core.masonry.api"
 # not merely that every line executes (100% line coverage is weak
 # evidence). We mutate only the loader package and run the test suite as
 # the test command.
-paths_to_mutate = ["bankstatementparser_loader_mt942/"]
-tests_dir = ["tests/"]
+source_paths = ["bankstatementparser_loader_mt942/"]
 # Run only the behavioural loader tests under mutation. The docs/version
-# regression suites (test_docs_accuracy, test_regression_*) resolve paths
-# relative to the real repo root and cannot run from mutmut's ``mutants/``
-# sandbox copy; they assert documentation sync, not loader logic, so they
-# are out of scope for mutation testing.
-runner = "python -m pytest -x -q --no-header -p no:cacheprovider tests/test_loader.py tests/test_corpus.py tests/test_real_corpus.py"
+# regression suites (test_docs_accuracy, test_regression_*,
+# test_release_notes) resolve paths relative to the real repo root and
+# cannot run from mutmut's ``mutants/`` sandbox copy; they assert
+# documentation sync, not loader logic, so they are out of scope. (These
+# are mutmut 3 keys; the 2.x ``paths_to_mutate`` / ``runner`` keys this
+# replaces were ignored, so every test ran and the sandbox failed.)
+pytest_add_cli_args_test_selection = [
+    "tests/test_loader.py",
+    "tests/test_corpus.py",
+    "tests/test_real_corpus.py",
+    "tests/test_amount_validation.py",
+    "tests/test_line_endings.py",
+    "tests/test_debit_credit_marks.py",
+    "tests/test_statement_parser_summary.py",
+]
+# The coverage floor in [tool.pytest.ini_options] addopts applies to the
+# whole suite; under mutmut's trampoline it would fail the stats run
+# before any mutant is tried.
+pytest_add_cli_args = ["--no-cov"]
 
 # tests/test_suite_conformance.py is generated and vendored from one
 # canonical copy shared across the suite, and checksummed by its own

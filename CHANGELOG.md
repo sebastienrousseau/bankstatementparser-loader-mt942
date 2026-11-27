@@ -5,6 +5,77 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.36] - 2026-11-27
+
+### Fixed
+
+- `:61:` lines marked `RC` (reversal of credit), `RD` (reversal of
+  debit), `EC` or `ED` (expected credit / debit), or carrying a
+  one-letter funds code after the mark, were dropped as malformed. They
+  now load; `D`, `RC` and `ED` are negative, `C`, `RD` and `EC`
+  positive.
+- An amount that is not a SWIFT `15d` comma-decimal (digits with at
+  most one comma, at most 15 characters) raises `ValueError` naming the
+  field. Before, `1,2,3` or a bare `,` escaped as
+  `decimal.InvalidOperation`, and an over-long amount was rounded to 28
+  significant digits. The conversion moves to
+  `bankstatementparser_loader_mt942/_amounts.py`.
+- A multi-line field in a CRLF file kept its carriage returns, so a
+  `:86:` description differed from the same file with LF line ends.
+- `make mutation` tried no mutant: `[tool.mutmut]` used mutmut 2.x keys
+  that mutmut 3 ignores. It now uses mutmut 3's keys and `--no-cov`, new
+  tests pin `Mt942StatementParser.get_summary`, and `tests/MUTATION.md`
+  records 427 of 438 mutants killed, every survivor a documented
+  equivalent.
+- The property test wrote its temporary file in the platform encoding
+  while the loader reads UTF-8, which fails on Windows.
+- `benches/bench_load_mt942.py`'s docstring named the BAI2 functions.
+
+### Added
+
+- An Atheris fuzz target, `fuzz/fuzz_load_mt942.py`, for `load_mt942`
+  and `summarize_mt942`, with a seed corpus; it fails on any exception
+  but `ValueError`, on a malformed `Transaction`, and on a summary that
+  disagrees with the load. CI runs it for 120 s on every change;
+  `make fuzz` locally.
+- A MkDocs Material user manual (`mkdocs.yml`, `docs/`) with an
+  mkdocstrings API reference, built with `--strict` on every pull
+  request and deployed to GitHub Pages from `main`
+  (`.github/workflows/docs.yml`, `make docs`). It replaces a Sphinx
+  configuration that nothing built.
+- `docs/POLICIES.md`, `docs/BENCHMARKS.md` (a run of
+  `benches/bench_load_mt942.py` with its environment),
+  `docs/COMPARISON.md`, `docs/format.md` and `docs/suite.md`.
+- Signed releases: keyless cosign `.sig` and `.pem` per distribution,
+  SLSA provenance
+  (`bankstatementparser-loader-mt942-vX.Y.Z.intoto.jsonl`,
+  slsa-github-generator 2.1.0), CycloneDX and SPDX SBOMs and a licence
+  manifest on every GitHub release, and PEP 740 attestations on PyPI.
+- The OpenSSF Scorecard workflow, the suite's Docs Lint workflow
+  (`scripts/readme-check.sh` and markdownlint), a Security workflow
+  (Bandit and `pip-audit` on the locked sets), the portfolio pull
+  request template, and `.github/demo.gif` rendered by `make demo` from
+  `.github/demo.tape`.
+- Hash-pinned requirement sets exported from the lock
+  (`requirements/{runtime,ci,fuzz,docs}.txt`, by the suite's
+  `scripts/export_locked_requirements.py`) and compiled release tooling
+  (`requirements/{build,sbom}.txt`).
+
+### Changed
+
+- Require `bankstatementparser >= 0.0.35`, the newest core release, and
+  align the version with the suite's 0.0.36 release; `poetry.lock`
+  moves core to 0.0.35.
+- CI pins every action by commit SHA, installs only the hashed lock
+  exports, and tests CPython 3.10 to 3.14 on Ubuntu, macOS and Windows.
+  Write permissions sit on the jobs that need them.
+- `README.md` follows the portfolio template and states the
+  Apache-2.0 OR MIT licence; the suite table moves to `docs/suite.md`.
+  `CODE-OF-CONDUCT.md` is now `CODE_OF_CONDUCT.md`, and the issue
+  templates follow the suite kit.
+- `ROADMAP.md` no longer presents v0.0.10 as the shipped version;
+  `ARCHITECTURE.md` lists every module and tool.
+
 ## [0.0.35] - 2026-11-26
 
 ### Added
@@ -331,6 +402,7 @@ the run, locally as well as in CI.
   - `ruff` and `mypy --strict` clean.
 - Python 3.10+ support; depends on `bankstatementparser` (>= 0.0.9).
 
+[0.0.36]: https://github.com/sebastienrousseau/bankstatementparser-loader-mt942/releases/tag/v0.0.36
 [0.0.35]: https://github.com/sebastienrousseau/bankstatementparser-loader-mt942/releases/tag/v0.0.35
 [0.0.34]: https://github.com/sebastienrousseau/bankstatementparser-loader-mt942/releases/tag/v0.0.34
 [0.0.33]: https://github.com/sebastienrousseau/bankstatementparser-loader-mt942/releases/tag/v0.0.33

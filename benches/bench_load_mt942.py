@@ -19,7 +19,7 @@ Read ``us/txn``. Flat means linear, and a busy afternoon poll is fine.
 Climbing means something rescans records it has already read — invisible
 on the small fixtures, obvious on a real file.
 
-``summarize_bai2`` is measured beside ``load_bai2`` because callers that
+``summarize_mt942`` is measured beside ``load_mt942`` because callers that
 only want totals should not have to pay for the full transaction list. If
 the two cost the same, the summary is building everything and then
 discarding it, and the cheap path is not actually cheap.
