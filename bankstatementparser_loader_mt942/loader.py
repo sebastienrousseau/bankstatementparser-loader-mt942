@@ -263,7 +263,7 @@ def _iter_fields(text: str) -> Iterator[tuple[str, str]]:
             if index + 1 < len(matches)
             else len(text)
         )
-        value = text[value_start:value_end].strip()
+        value = text[value_start:value_end].strip().replace("\r\n", "\n")
         # Drop a trailing end-of-message marker on the final field.
         if value.endswith("\n-"):
             value = value[:-2].strip()
