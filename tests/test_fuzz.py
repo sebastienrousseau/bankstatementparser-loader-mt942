@@ -91,7 +91,9 @@ def test_fuzz_iter_fields(text: str) -> None:
 @given(st.text(min_size=0, max_size=1000))
 def test_fuzz_mt942_statement_parser(text: str) -> None:
     """Mt942StatementParser wrapper never unhandled crashes on arbitrary file content."""
-    with tempfile.NamedTemporaryFile("w", suffix=".mt942", delete=False) as f:
+    with tempfile.NamedTemporaryFile(
+        "w", suffix=".mt942", delete=False, encoding="utf-8"
+    ) as f:
         f.write(text)
         f_path = f.name
     try:
