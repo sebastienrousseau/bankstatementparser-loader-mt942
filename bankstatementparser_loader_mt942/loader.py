@@ -91,6 +91,8 @@ from bankstatementparser.base_parser import BankStatementParser
 from bankstatementparser.record_types import SummaryRecord
 from bankstatementparser.transaction_models import Transaction
 
+from bankstatementparser_loader_mt942._amounts import _comma_decimal
+
 __all__ = [
     "Mt942StatementParser",
     "Mt942Summary",
@@ -271,24 +273,6 @@ def _iter_fields(text: str) -> Iterator[tuple[str, str]]:
 
 
 # ─── Field parsers ──────────────────────────────────────────────────────────
-
-
-def _comma_decimal(value: str) -> Decimal:
-    """Convert a SWIFT comma-decimal amount to a :class:`Decimal`.
-
-    SWIFT uses a comma as the decimal separator (``500,00``); this
-    swaps it for a period before constructing the
-    :class:`decimal.Decimal` so arithmetic and formatting behave as
-    expected.
-
-    Args:
-        value: The amount string, e.g. ``"500,00"``.
-
-    Returns:
-        The equivalent :class:`decimal.Decimal`, e.g.
-        ``Decimal("500.00")``.
-    """
-    return Decimal(value.replace(",", "."))
 
 
 def _format_yymmdd(value: str) -> date:
