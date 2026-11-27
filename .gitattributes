@@ -40,3 +40,6 @@ tests/fixtures/real/*.mt942 -text
 *.db binary
 *.sqlite binary
 *.parquet binary
+
+# Fuzz seeds are byte-exact inputs (one carries CRLF line ends on purpose).
+fuzz/corpus/** -text
