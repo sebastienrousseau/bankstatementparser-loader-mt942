@@ -71,14 +71,27 @@ build-backend = "poetry.core.masonry.api"
 # not merely that every line executes (100% line coverage is weak
 # evidence). We mutate only the loader package and run the test suite as
 # the test command.
-paths_to_mutate = ["bankstatementparser_loader_mt942/"]
-tests_dir = ["tests/"]
+source_paths = ["bankstatementparser_loader_mt942/"]
 # Run only the behavioural loader tests under mutation. The docs/version
-# regression suites (test_docs_accuracy, test_regression_*) resolve paths
-# relative to the real repo root and cannot run from mutmut's ``mutants/``
-# sandbox copy; they assert documentation sync, not loader logic, so they
-# are out of scope for mutation testing.
-runner = "python -m pytest -x -q --no-header -p no:cacheprovider tests/test_loader.py tests/test_corpus.py tests/test_real_corpus.py"
+# regression suites (test_docs_accuracy, test_regression_*,
+# test_release_notes) resolve paths relative to the real repo root and
+# cannot run from mutmut's ``mutants/`` sandbox copy; they assert
+# documentation sync, not loader logic, so they are out of scope. (These
+# are mutmut 3 keys; the 2.x ``paths_to_mutate`` / ``runner`` keys this
+# replaces were ignored, so every test ran and the sandbox failed.)
+pytest_add_cli_args_test_selection = [
+    "tests/test_loader.py",
+    "tests/test_corpus.py",
+    "tests/test_real_corpus.py",
+    "tests/test_amount_validation.py",
+    "tests/test_line_endings.py",
+    "tests/test_debit_credit_marks.py",
+    "tests/test_statement_parser_summary.py",
+]
+# The coverage floor in [tool.pytest.ini_options] addopts applies to the
+# whole suite; under mutmut's trampoline it would fail the stats run
+# before any mutant is tried.
+pytest_add_cli_args = ["--no-cov"]
 
 # tests/test_suite_conformance.py is generated and vendored from one
 # canonical copy shared across the suite, and checksummed by its own
