@@ -76,7 +76,7 @@ Verify the installation:
 
 ```sh
 python -c "import bankstatementparser_loader_mt942 as m; print(m.__version__)"
-# -> 0.0.36
+# -> 0.0.37
 ```
 
 ---
