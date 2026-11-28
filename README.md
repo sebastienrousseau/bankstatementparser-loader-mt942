@@ -65,11 +65,11 @@
 pip install bankstatementparser-loader-mt942
 ```
 
-That installs the loader and pulls in [`bankstatementparser`](https://github.com/sebastienrousseau/bankstatementparser) (>= 0.0.35) automatically, which brings `pandas` and `pydantic`.
+That installs the loader and pulls in [`bankstatementparser`](https://github.com/sebastienrousseau/bankstatementparser) (>= 0.0.36) automatically, which brings `pandas` and `pydantic`.
 
 | Channel | Command | Notes |
 | :--- | :--- | :--- |
-| PyPI | `pip install bankstatementparser-loader-mt942` | Pulls in `bankstatementparser >= 0.0.35` |
+| PyPI | `pip install bankstatementparser-loader-mt942` | Pulls in `bankstatementparser >= 0.0.36` |
 | Source | `git clone https://github.com/sebastienrousseau/bankstatementparser-loader-mt942 && cd bankstatementparser-loader-mt942 && poetry install` | For development |
 
 Verify the installation:
@@ -84,7 +84,7 @@ python -c "import bankstatementparser_loader_mt942 as m; print(m.__version__)"
 ## Requirements
 
 - **Python 3.10 or later.** CI tests CPython 3.10, 3.11, 3.12, 3.13 and 3.14 on Linux, macOS and Windows; [`docs/POLICIES.md`](docs/POLICIES.md) says when the floor moves.
-- **[`bankstatementparser`](https://pypi.org/project/bankstatementparser/) 0.0.35 or later**, whose `Transaction` model and `BankStatementParser` base class the loader produces and extends.
+- **[`bankstatementparser`](https://pypi.org/project/bankstatementparser/) 0.0.36 or later**, whose `Transaction` model and `BankStatementParser` base class the loader produces and extends.
 - No network access, native extensions or system packages of its own.
 
 ---
