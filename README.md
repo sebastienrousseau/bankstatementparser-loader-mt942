@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/sebastienrousseau/bankstatementparser-loader-mt942/main/.github/demo.gif" alt="A terminal printing bankstatementparser-loader-mt942 0.0.36, the repository's Barclays GBP MT942 fixture, then the 01_load_mt942.py and 02_summarize_mt942.py examples loading signed transactions and the debit and credit summaries" width="100%" />
+  <img src="https://raw.githubusercontent.com/sebastienrousseau/bankstatementparser-loader-mt942/main/.github/demo.gif" alt="A terminal printing bankstatementparser-loader-mt942 0.0.37, the repository's Barclays GBP MT942 fixture, then the 01_load_mt942.py and 02_summarize_mt942.py examples loading signed transactions and the debit and credit summaries" width="100%" />
 </p>
 
 ---
