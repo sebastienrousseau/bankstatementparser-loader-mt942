@@ -5,10 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.0.37] - 2026-11-28
 
 ### Changed
 
+- Require `bankstatementparser >= 0.0.36`, the newest core release, and
+  align the version with the suite's 0.0.37 release; `poetry.lock`
+  moves core to 0.0.36.
 - CI: four pinned actions move to their latest releases:
   codeql-action 4.39.5, markdownlint-cli2-action 25.1.0,
   cosign-installer 4.1.4 and sbom-action 0.24.4.
@@ -18,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The suite consistency check authenticates its GitHub API request
   with the workflow token, so the shared anonymous rate limit no
   longer fails it.
+- `make security` no longer hides bandit findings: it fell back to a
+  medium-severity-only run whenever the full scan failed. It and the
+  Security workflow now run the full scan, and the two `assert`
+  statements it reported in `summarize_mt942` are gone (`_accumulate`
+  returns the checked reference and account id instead).
 
 ## [0.0.36] - 2026-11-27
 
@@ -416,6 +424,7 @@ the run, locally as well as in CI.
   - `ruff` and `mypy --strict` clean.
 - Python 3.10+ support; depends on `bankstatementparser` (>= 0.0.9).
 
+[0.0.37]: https://github.com/sebastienrousseau/bankstatementparser-loader-mt942/releases/tag/v0.0.37
 [0.0.36]: https://github.com/sebastienrousseau/bankstatementparser-loader-mt942/releases/tag/v0.0.36
 [0.0.35]: https://github.com/sebastienrousseau/bankstatementparser-loader-mt942/releases/tag/v0.0.35
 [0.0.34]: https://github.com/sebastienrousseau/bankstatementparser-loader-mt942/releases/tag/v0.0.34

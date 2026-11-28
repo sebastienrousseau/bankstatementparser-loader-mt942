@@ -522,14 +522,15 @@ def _handle_field(state: _State, tag: str, value: str) -> None:
     # :28C: and any unknown tag are ignored (Postel's law).
 
 
-def _accumulate(text: str) -> _State:
+def _accumulate(text: str) -> tuple[_State, str, str]:
     """Tokenise an MT942 payload and accumulate parsed state.
 
     Args:
         text: The raw MT942 payload.
 
     Returns:
-        The populated :class:`_State`.
+        The populated :class:`_State`, with its ``:20:`` reference and
+        ``:25:`` account id, both checked to be present.
 
     Raises:
         ValueError: If the mandatory ``:20:`` or ``:25:`` field is
@@ -538,13 +539,14 @@ def _accumulate(text: str) -> _State:
     state = _State()
     for tag, value in _iter_fields(_strip_envelope(text)):
         _handle_field(state, tag, value)
-    if state.reference is None:
+    reference, account_id = state.reference, state.account_id
+    if reference is None:
         raise ValueError("MT942 payload missing required :20: reference")
-    if state.account_id is None:
+    if account_id is None:
         raise ValueError(
             "MT942 payload missing required :25: account identification"
         )
-    return state
+    return state, reference, account_id
 
 
 # ─── Public API ──────────────────────────────────────────────────────────────
@@ -574,11 +576,11 @@ def load_mt942(text: str) -> list[Transaction]:
         ValueError: If the payload is missing the mandatory ``:20:`` or
             ``:25:`` field.
     """
-    state = _accumulate(text)
+    state, _, account_id = _accumulate(text)
     transactions: list[Transaction] = []
     for index, record in enumerate(state.records):
         enriched: dict[str, object] = dict(record)
-        enriched["account_id"] = state.account_id
+        enriched["account_id"] = account_id
         enriched["currency"] = state.currency
         transactions.append(
             Transaction.from_record(
@@ -624,13 +626,10 @@ def summarize_mt942(text: str) -> Mt942Summary:
         ValueError: If the payload is missing the mandatory ``:20:`` or
             ``:25:`` field.
     """
-    state = _accumulate(text)
-    # ``_accumulate`` guarantees these are populated.
-    assert state.reference is not None
-    assert state.account_id is not None
+    state, reference, account_id = _accumulate(text)
     return Mt942Summary(
-        reference=state.reference,
-        account_id=state.account_id,
+        reference=reference,
+        account_id=account_id,
         currency=state.currency,
         statement_datetime=state.statement_datetime,
         debit_count=state.debit_count,

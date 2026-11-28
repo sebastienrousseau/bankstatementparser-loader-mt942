@@ -9,7 +9,12 @@ without surprises. The roadmap reflects that focus.
 Releases stay on the `0.0.x` line, one `0.0.1` step at a time with the
 rest of the suite.
 
-## Shipped (0.0.36, current)
+## Shipped (0.0.37, current)
+
+- Built against core 0.0.36; the suite consistency check authenticates
+  its GitHub API request.
+
+## Shipped (0.0.36)
 
 - `load_mt942`, `load_mt942_file`, `summarize_mt942`, `Mt942Summary`,
   and `Mt942StatementParser` for the core.
