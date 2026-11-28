@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The suite consistency check authenticates its GitHub API request
   with the workflow token, so the shared anonymous rate limit no
   longer fails it.
+- `make security` no longer hides bandit findings: it fell back to a
+  medium-severity-only run whenever the full scan failed. It and the
+  Security workflow now run the full scan, and the two `assert`
+  statements it reported in `summarize_mt942` are gone (`_accumulate`
+  returns the checked reference and account id instead).
 
 ## [0.0.36] - 2026-11-27
 

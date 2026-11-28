@@ -1,6 +1,6 @@
 {
   "bankstatementparser_loader_mt942/loader.py": {
-    "file_lines": 685
+    "file_lines": 684
   },
   "bankstatementparser_loader_mt942/loader.py::_handle_field": {
     "cognitive": 16,
